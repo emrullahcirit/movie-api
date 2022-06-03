@@ -1,18 +1,19 @@
 package controllers
 
 import (
-    "context"
-    "github.com/emrullahcirit/movie-api/configs"
-    "github.com/emrullahcirit/movie-api/models"
-    "github.com/emrullahcirit/movie-api/responses"
-    "net/http"
-    "time"
-  
-    "github.com/go-playground/validator/v10"
-    "github.com/gofiber/fiber/v2"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-    "go.mongodb.org/mongo-driver/mongo"
-		"go.mongodb.org/mongo-driver/bson"
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/emrullahcirit/movie-api/configs"
+	"github.com/emrullahcirit/movie-api/models"
+	"github.com/emrullahcirit/movie-api/responses"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var movieCollection *mongo.Collection = configs.GetCollection(configs.DB, "movies")
@@ -28,15 +29,15 @@ func CreateMovie(c *fiber.Ctx) error {
 	}
 
 	if validationErr := validate.Struct(&movie); validationErr != nil {
-	    return c.Status(http.StatusBadRequest).JSON(responses.MovieResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
+		return c.Status(http.StatusBadRequest).JSON(responses.MovieResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
 	newMovie := models.Movie{
-		Id:				primitive.NewObjectID(),
-		Name:			movie.Name,
-		Director:	movie.Director,
-		Rating:		movie.Rating,
-		Comment:	movie.Comment,
+		Id:       primitive.NewObjectID(),
+		Name:     movie.Name,
+		Director: movie.Director,
+		Rating:   movie.Rating,
+		Comment:  movie.Comment,
 	}
 
 	result, err := movieCollection.InsertOne(ctx, newMovie)
@@ -46,7 +47,7 @@ func CreateMovie(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(responses.MovieResponse{Status: http.StatusCreated, Message: "success", Data: &fiber.Map{"data": result}})
-	
+
 }
 
 func GetAMovie(c *fiber.Ctx) error {
@@ -74,12 +75,11 @@ func GetAllMovies(c *fiber.Ctx) error {
 	results, err := movieCollection.Find(ctx, bson.M{})
 
 	if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(responses.MovieResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusInternalServerError).JSON(responses.MovieResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
-	
 	defer results.Close(ctx)
-	
+
 	for results.Next(ctx) {
 		var singleMovie models.Movie
 		if err = results.Decode(&singleMovie); err != nil {
@@ -105,7 +105,7 @@ func EditAMovie(c *fiber.Ctx) error {
 	objId, _ := primitive.ObjectIDFromHex(movieId)
 
 	if err := c.BodyParser(&movie); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(responses.MovieResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusBadRequest).JSON(responses.MovieResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
 	if validationErr := validate.Struct(&movie); validationErr != nil {
@@ -123,7 +123,7 @@ func EditAMovie(c *fiber.Ctx) error {
 	var updatedMovie models.Movie
 	if result.MatchedCount == 1 {
 		err := movieCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&updatedMovie)
-		
+
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(responses.MovieResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 		}
@@ -142,7 +142,7 @@ func DeleteAMovie(c *fiber.Ctx) error {
 
 	result, err := movieCollection.DeleteOne(ctx, bson.M{"id": objId})
 	if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(responses.MovieResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusInternalServerError).JSON(responses.MovieResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
 	if result.DeletedCount < 1 {

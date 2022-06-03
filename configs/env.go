@@ -3,8 +3,8 @@ package configs
 import (
 	"log"
 	"os"
+
 	"github.com/joho/godotenv"
-	
 )
 
 func EnvMongoURI() string {
