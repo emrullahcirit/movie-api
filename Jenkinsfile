@@ -4,7 +4,7 @@ pipeline {
 	stages {
 		stage('Docker Build') {
 			steps {
-				sh 'docker build -t emrullahcirit/movie-api-image:latest .'
+				sh 'sudo docker build -t emrullahcirit/movie-api-image:latest .'
 			}
 		}
 	}
